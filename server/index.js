@@ -9,7 +9,7 @@ require("dotenv").config();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cors({ origin: process.env.CLIENT_URL/* your in production cline tURL */, credentials: true }));
+app.use(cors({ origin: 'http://localhost:3000' /* your in production cline tURL */, credentials: true }));
 
 app.all("/", function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
@@ -21,9 +21,11 @@ app.get("/api", (req, res) => {
   res.send("API server: running");
 });
 
-app.post("/api/form", (req, res) => {
+app.post("/api/form", async (req, res) => {
+
   let transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: 'smtp.gmail.com',
+    port: 465,
     auth: {
       user: process.env.NODEMAILER_ADDRESS,
       pass: process.env.NODEMAILER_PASSWORD
@@ -37,17 +39,20 @@ app.post("/api/form", (req, res) => {
     from: req.body.name,
     to: process.env.NODEMAILER_ADDRESS,
     replyTo: req.body.email,
-    subject: req.body.name,
+    subject: `${req.body.name}, from my Portfolio Site`,
     text: req.body.message
   };
 
-  transporter.sendMail(mailOptions, function(err, data) {
+  await transporter.sendMail(mailOptions, function(err, data) {
     if (err) {
       console.log("Error: ", err);
     } else {
       console.log("Email sent successfully");
     }
   });
+
+  await res.status(200).json({ msg: 'eMAil_sEnT' })
+
 });
 
 if (process.env.NODE_ENV === "production") {

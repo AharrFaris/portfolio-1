@@ -21,10 +21,10 @@ class ContactMe extends React.Component {
   }
 
   handleChange = e => {
-    this.setState({ [e.target.name]: e.target.value });
+    this.setState({ [ e.target.name ]: e.target.value });
   };
 
-  resetForm = e => {
+  resetForm = () => {
     this.setState({
       name: "",
       email: "",
@@ -39,8 +39,10 @@ class ContactMe extends React.Component {
       method: "POST",
       url: "/api/form",
       data: this.state
-    }).then(() => {
-      this.resetForm();
+    }).then((resp) => {
+      if (resp.status === 200 && resp.data.msg === 'eMAil_sEnT') {
+        this.resetForm();
+      }
     });
   };
 
@@ -60,6 +62,7 @@ class ContactMe extends React.Component {
               name="name"
               type="text"
               onChange={this.handleChange}
+              value={this.state.name}
             ></Form.Control>
           </Form.Group>
 
@@ -70,6 +73,7 @@ class ContactMe extends React.Component {
               name="email"
               type="email"
               onChange={this.handleChange}
+              value={this.state.email}
             ></Form.Control>
           </Form.Group>
 
@@ -81,6 +85,7 @@ class ContactMe extends React.Component {
               as="textarea"
               rows="4"
               onChange={this.handleChange}
+              value={this.state.message}
             ></Form.Control>
           </Form.Group>
 

@@ -7,8 +7,8 @@ import "./index.css";
 
 import App from "./App";
 
-axios.defaults.baseURL = 'http://localhost:3001'; // comment out this line on production
-// axios.defaults.baseURL = 'UNCOMMENT THIS and put URL of your site on production';
+// axios.defaults.baseURL = 'http://localhost:3001';
+axios.defaults.baseURL = 'https://kc-portfolio-api.herokuapp.com';
 
 
 ReactDOM.render(<App />, document.getElementById("root"));

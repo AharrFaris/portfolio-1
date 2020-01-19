@@ -9,7 +9,8 @@ require("dotenv").config();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cors({ origin: 'http://localhost:3000' /* your in production cline tURL */, credentials: true }));
+// app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
+app.use(cors({ origin: 'https://kc-portfolio.netlify.com', credentials: true }));
 
 app.all("/", function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
@@ -22,6 +23,8 @@ app.get("/api", (req, res) => {
 });
 
 app.post("/api/form", async (req, res) => {
+
+  console.log(req.body)
 
   let transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -37,10 +40,22 @@ app.post("/api/form", async (req, res) => {
 
   let mailOptions = {
     from: req.body.name,
-    to: process.env.NODEMAILER_ADDRESS,
+    to: process.env.MAIL_RECEIVER,
     replyTo: req.body.email,
-    subject: `${req.body.name}, from my Portfolio Site`,
-    text: req.body.message
+    subject: `Portfolio Site || ${req.body.name}, from my Portfolio Site`,
+    html: `
+            <p style="text-align: center; font-size: 16px">
+              A message from, <strong>${req.body.name}</strong>.
+            </p>
+
+            <p style="text-align: center; font-size: 14px">
+              Reply <strong>${req.body.name}</strong> to:
+              <a href="mailto:${req.body.email}">${req.body.email}</a>
+            </p>
+
+            <br>
+            <Strong>Message:</strong>
+            <p style="font-size: 15px">${req.body.message}</p>`
   };
 
   await transporter.sendMail(mailOptions, function(err, data) {

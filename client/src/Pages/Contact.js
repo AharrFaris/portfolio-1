@@ -1,18 +1,27 @@
 import React from "react";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
+import { Alert } from 'react-bootstrap';
 
 import Content from "../Components/Content";
 import Jumbo from "../Components/Jumbo";
 import axios from "axios";
 
 class ContactMe extends React.Component {
+
   constructor(props) {
     super(props);
     this.state = {
       name: "",
       email: "",
-      message: ""
+      message: "",
+
+      // adding few new properties
+      misc: {
+        succAlert: false,
+        isValid: true,
+        backErr: null
+      }
     };
 
     this.handleChange = this.handleChange.bind(this);
@@ -20,10 +29,27 @@ class ContactMe extends React.Component {
     this.resetForm = this.resetForm.bind(this);
   }
 
+
+  //--------------------------------------------------------- Custom
+
+  // handling on Change
   handleChange = e => {
+
+    // making these properties behave as default ( the way it is in State ) "onChange"
+    this.setState(prev => ({
+      misc: {
+        ...prev.misc,
+        succAlert: false,
+        isValid: true,
+        backErr: null
+      }
+    })); // <=== It would look confusing just google "Spread Operator". If still confusing let me know
+
     this.setState({ [ e.target.name ]: e.target.value });
   };
 
+
+  // Resets Form
   resetForm = () => {
     this.setState({
       name: "",
@@ -32,18 +58,64 @@ class ContactMe extends React.Component {
     });
   };
 
+  // Handling Submit
   handleSubmit = e => {
     e.preventDefault();
 
-    axios({
-      method: "POST",
-      url: "/api/form",
-      data: this.state
-    }).then((resp) => {
-      if (resp.status === 200 && resp.data.msg === 'eMAil_sEnT') {
-        this.resetForm();
-      }
-    });
+    // If meets these criteria
+    if (this.state.email && this.state.name && this.state.message) {
+
+      // send request to the API
+      axios({
+        method: "POST",
+        url: "/api/form",
+        data: this.state
+      }).then((resp) => {
+
+        // if found resposne ( Success one )
+        if (resp.status === 200 && resp.data.msg === 'eMAil_sEnT') {
+
+          // reset the Form
+          this.resetForm();
+
+          // and set Success
+          this.setState(prev => ({
+            misc: {
+              ...prev.misc,
+              succAlert: true
+            }
+          }));
+        }
+      })
+        .catch((err) => {
+
+          // if found Error like this ( if no internet or Server is down )
+          if (err.message === 'Network Error') {
+
+            // store Error on State
+            this.setState(prev => ({
+              misc: {
+                ...prev.misc,
+                backErr: `${err.message}`
+              }
+            }));
+          } else {
+
+            // else print it ( after that we can deal with it )
+            console.log(err)
+          }
+        })
+    } else {
+
+      // else Criteria did not matched ( set Validation false )
+      this.setState(prev => ({
+        misc: {
+          ...prev.misc,
+          isValid: false
+        }
+      }));
+    }
+
   };
 
   render() {
@@ -55,6 +127,30 @@ class ContactMe extends React.Component {
           method="POST"
           onSubmit={this.handleSubmit}
         >
+
+          { // if Success
+            this.state.misc.succAlert &&
+
+            // shwoing this Alert
+            <Alert variant="success" className="text-center">Your Message Successfully sent to me!</Alert>
+          }
+
+          {
+            // any backend Error
+            this.state.misc.backErr &&
+
+            // showing this Alert
+            <Alert variant="danger" className="text-center">{this.state.misc.backErr}</Alert>
+          }
+
+          {
+            // if form is not valid
+            !this.state.misc.isValid &&
+
+            // showing this Alert
+            <Alert variant="warning" className="text-center">Propery Fill up the Fields first!</Alert>
+          }
+
           <Form.Group>
             <Form.Label htmlFor="full-name">Full Name</Form.Label>
             <Form.Control
